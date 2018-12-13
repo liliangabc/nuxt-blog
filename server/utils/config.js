@@ -1,9 +1,13 @@
-let { DB_URL, SESSION_SECRET, EMAIL_USER, EMAIL_PWD } = process.env
+let {
+  APP_DB_URL = 'mongodb://127.0.0.1:27017/blogdb',
+  APP_SESSION_SECRET = 'test2018',
+  APP_EMAIL_USER = 'jserli@outlook.com',
+  APP_EMAIL_PWD = ''
+} = process.env
+
 module.exports = {
-  DB_URL: (DB_URL || 'mongodb://127.0.0.1:27017') + '/blogdb',
-  sessionSecret: SESSION_SECRET || 'test2018',
-  email: {
-    user: EMAIL_USER || 'jserli@outlook.com',
-    password: EMAIL_PWD || ''
-  }
+  APP_DB_URL,
+  APP_SESSION_SECRET,
+  APP_EMAIL_USER,
+  APP_EMAIL_PWD
 }

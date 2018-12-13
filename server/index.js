@@ -7,6 +7,7 @@ const bodyParser = require('body-parser')
 const compression = require('compression')
 const session = require('express-session')
 const MongoStore = require('connect-mongo')(session)
+const { APP_SESSION_SECRET } = require('./utils/config')
 
 require('./models/conndb').connDB()
 
@@ -15,6 +16,16 @@ const host = process.env.HOST || '127.0.0.1'
 const port = process.env.PORT || 3000
 
 app.set('port', port)
+app.use(compression())
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(session({
+  resave: true,
+  saveUninitialized: false,
+  secret: APP_SESSION_SECRET,
+  store: new MongoStore({ mongooseConnection: mongoose.connection })
+}))
+require('./routes')(app)
 
 let config = require('../nuxt.config.js')
 config.dev = process.env.NODE_ENV !== 'production'

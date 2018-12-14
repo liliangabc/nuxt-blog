@@ -108,7 +108,8 @@ router.post('/login', (req, res) => {
       res.send(500, constants.DB_ERROR)
     // 如果用户存在且密码正确，那么检查用户是否已激活
     } else if (user && user.password === pwd) {
-      req.session.user = user
+      let { __v, password: _pwd, activateInfo, ...data } = JSON.parse(JSON.stringify(user))
+      req.session.user = data
       // 如果已经激活，那么登录成功
       if (user.isActivated) {
         res.json({ info: constants.LOGIN_SUCCESS })
@@ -179,7 +180,8 @@ router.post('/reset_pwd', (req, res) => {
     } else if (doc) {
       if (isValid(doc)) {
         // 更新用户密码
-        User.updateOne({ email }, { $set: { password } }, (err, raw) => {
+        password = crypto.createHash('md5').update(password).digest('hex')
+        User.updateOne({ email }, { password }, (err, raw) => {
           if (err) {
             res.send(500, constants.DB_ERROR)
           } else {
@@ -258,8 +260,7 @@ router.post('/logout', (req, res) => {
 router.get('/info', (req, res) => {
   let { user } = req.session
   if (user) {
-    let { __v, password: _pwd, ...data } = JSON.parse(JSON.stringify(user))
-    res.json({ info: constants.GET_SUCCESS, data })
+    res.json({ info: constants.GET_SUCCESS, data: user })
   } else {
     return res.send(401, constants.NO_USER_SESSION)
   }

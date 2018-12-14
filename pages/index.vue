@@ -26,6 +26,13 @@
 import Logo from '~/components/Logo.vue'
 
 export default {
+  asyncData({ $axios }) {
+    return $axios.$get('/user/info').then(data => {
+      return { data }
+    }).catch(err => {
+      console.log(err.message)
+    })
+  },
   components: {
     Logo
   }

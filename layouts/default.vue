@@ -1,55 +1,27 @@
 <template>
-  <div>
+<v-app>
+  <!-- 顶部工具栏 -->
+  <v-toolbar color="blue darken-3" dark app fixed :clipped-left="$vuetify.breakpoint.lgAndUp">
+    <v-toolbar-title style="width: 300px;" class="ml-0 pl-3">
+      <span class="hidden-sm-and-down">Nuxt Blog</span>
+    </v-toolbar-title>
+    <v-text-field class="hidden-sm-and-down" prepend-inner-icon="search"
+      label="Search" flat solo-inverted hide-details></v-text-field>
+    <v-spacer></v-spacer>
+    <v-btn flat nuxt to="/entry/login">登录</v-btn>
+  </v-toolbar>
+  <!-- 内容区 -->
+  <v-content>
     <nuxt/>
-  </div>
+  </v-content>
+</v-app>
 </template>
-
-<style>
-html {
-  font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-size: 16px;
-  word-spacing: 1px;
-  -ms-text-size-adjust: 100%;
-  -webkit-text-size-adjust: 100%;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  box-sizing: border-box;
+<script>
+export default {
+  data() {
+    return {
+      drawer: false
+    }
+  }
 }
-
-*,
-*:before,
-*:after {
-  box-sizing: border-box;
-  margin: 0;
-}
-
-.button--green {
-  display: inline-block;
-  border-radius: 4px;
-  border: 1px solid #3b8070;
-  color: #3b8070;
-  text-decoration: none;
-  padding: 10px 30px;
-}
-
-.button--green:hover {
-  color: #fff;
-  background-color: #3b8070;
-}
-
-.button--grey {
-  display: inline-block;
-  border-radius: 4px;
-  border: 1px solid #35495e;
-  color: #35495e;
-  text-decoration: none;
-  padding: 10px 30px;
-  margin-left: 15px;
-}
-
-.button--grey:hover {
-  color: #fff;
-  background-color: #35495e;
-}
-</style>
+</script>

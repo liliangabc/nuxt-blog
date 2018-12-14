@@ -14,26 +14,29 @@ module.exports = {
       { hid: 'description', name: 'description', content: pkg.description }
     ],
     link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+      { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' }
     ]
   },
 
   /*
   ** Customize the progress-bar color
   */
-  loading: { color: '#fff' },
+  loading: { color: '#3B8070' },
 
   /*
   ** Global CSS
   */
   css: [
+    
   ],
 
   /*
   ** Plugins to load before mounting the App
   */
   plugins: [
-    '~/plugins/axios'
+    '~/plugins/axios',
+    '~/plugins/vuetify'
   ],
 
   /*

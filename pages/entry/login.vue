@@ -1,5 +1,5 @@
 <template>
-<div>
-  hello login
+<div class="com-entry-login">
+  
 </div>
 </template>

@@ -36,7 +36,8 @@ module.exports = {
   */
   plugins: [
     '~/plugins/axios',
-    '~/plugins/vuetify'
+    '~/plugins/vuetify',
+    { src: '~/plugins/markdown', ssr: false }
   ],
 
   /*

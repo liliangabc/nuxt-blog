@@ -51,7 +51,7 @@ export default {
           this.loading = false
           alert(data.info)
         } else {
-          this.$router.push('/')
+          location.href = '/'
         }
       }).catch(err => {
         this.formData.captcha = ''

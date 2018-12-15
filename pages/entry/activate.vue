@@ -1,11 +1,7 @@
 <template>
 <div class="page-entry-activate">
-  <h3 class="title font-weight-bold">
-    {{type === 'error' ? '激活失败' : '欢迎你的加入'}}
-  </h3>
-  <v-alert :type="type" class="my-4" :value="true">
-    {{message}}
-  </v-alert>
+  <h3 class="title font-weight-bold">{{type === 'error' ? '激活失败' : '欢迎你的加入'}}</h3>
+  <v-alert :type="type" class="my-4" :value="true">{{message}}</v-alert>
   <v-layout justify-center>
     <v-btn nuxt to="/entry/login" flat class="ml-0" color="primary">
       <v-icon>arrow_back</v-icon>
@@ -20,7 +16,6 @@
 </template>
 <script>
 export default {
-  layout: 'entry',
   asyncData({ $axios, route }) {
     return $axios.post('/user/activate', {
       code: route.query.code

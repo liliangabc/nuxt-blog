@@ -110,7 +110,7 @@ router.post('/login', (req, res) => {
       res.status(500).send(constants.DB_ERROR)
     // 如果用户存在且密码正确，那么检查用户是否已激活
     } else if (user && user.password === pwd) {
-      let { password: _pwd, data } = JSON.parse(JSON.stringify(user))
+      let { password: _pwd, ...data } = JSON.parse(JSON.stringify(user))
       req.session.user = data
       // 如果已经激活，那么登录成功
       if (user.isActivated) {

@@ -20,7 +20,7 @@ app.use(compression())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(session({
-  resave: true,
+  resave: false,
   saveUninitialized: false,
   secret: APP_SESSION_SECRET,
   store: new MongoStore({ mongooseConnection: mongoose.connection })

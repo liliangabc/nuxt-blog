@@ -4,12 +4,12 @@
     <v-text-field prepend-icon="email" label="邮 箱" type="email" :rules="rules.email" required v-model.trim="formData.email"></v-text-field>
     <v-layout class="captcha-wrapper">
       <v-text-field prepend-icon="verified_user" label="验证码" :rules="rules.captcha" required v-model="formData.captcha"></v-text-field>
-      <v-btn depressed style="margin-right: 0;" color="info" @click="sendCaptcha">发送验证码</v-btn>
+      <v-btn depressed class="mr-0" color="primary" @click="sendCaptcha">发送验证码</v-btn>
     </v-layout>
     <v-text-field prepend-icon="lock" label="新密码" type="password" :rules="rules.password" required v-model.trim="formData.password"></v-text-field>
     <v-text-field prepend-icon="lock" label="确认密码" type="password" :rules="rules.confirmPwd" required v-model.trim="formData.confirmPwd"></v-text-field>
     <v-layout justify-center my-3>
-      <v-btn color="info" :loading="loading" @click="handleSubmit">重置密码</v-btn>
+      <v-btn color="primary" :loading="loading" @click="handleSubmit">重置密码</v-btn>
     </v-layout>
     <v-layout>
       <v-icon color="primary">arrow_back</v-icon>

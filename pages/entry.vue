@@ -12,7 +12,6 @@
   </v-card>
 </template>
 <script>
-// http://localhost:3000/api/user/activate?code=9890c1f9bbacb7b1f2efc7a121c92e3648589e93bd171b5b062b9fc42ef7705f
 export default {
   layout: 'entry',
   computed: {

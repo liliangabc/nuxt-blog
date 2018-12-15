@@ -74,19 +74,21 @@ router.post('/activate', (req, res) => {
   }
 
   // 更新用户激活状态
-  User.findOneAndUpdate(
-    { 'activateInfo.code': code },
-    { $set: { isActivated: true }, $unset: { activateInfo: 0 } },
-    (err, user) => {
-      if (err) {
-        res.send(500, constants.DB_ERROR)
-      } else if (user && isValid(user)) {
+  User.findOne({ 'activateInfo.code': code }, (err, user) => {
+    if (err) return res.send(500, constants.DB_ERROR)
+    if (user && isValid(user)) {
+      user.isActivated = true
+      user.activateInfo = { date: new Date() }
+      user.save(err => {
+        if (err) {
+          return res.send(500, constants.DB_ERROR)
+        }
         res.json({ info: constants.ACTIVATE_SUCCESS })
-      } else {
-        res.send(403, constants.ACTIVATE_CODE_INVALID)
-      }
+      })
+    } else {
+      res.send(403, constants.ACTIVATE_CODE_INVALID)
     }
-  )
+  })
 })
 
 /**
@@ -103,13 +105,12 @@ router.post('/login', (req, res) => {
 
   // 查找用户是否存在
   let pwd = crypto.createHash('md5').update(password).digest('hex')
-  User.findOne({ email: email.trim() }, (err, user) => {
+  User.findOne({ email: email.trim() }, { __v: 0, password: 0 }, (err, user) => {
     if (err) {
       res.send(500, constants.DB_ERROR)
     // 如果用户存在且密码正确，那么检查用户是否已激活
     } else if (user && user.password === pwd) {
-      let { __v, password: _pwd, activateInfo, ...data } = JSON.parse(JSON.stringify(user))
-      req.session.user = data
+      req.session.user = user
       // 如果已经激活，那么登录成功
       if (user.isActivated) {
         res.json({ info: constants.LOGIN_SUCCESS })

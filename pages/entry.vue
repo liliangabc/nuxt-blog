@@ -10,6 +10,7 @@
   </div>
 </template>
 <script>
+// http://localhost:3000/api/user/activate?code=9890c1f9bbacb7b1f2efc7a121c92e3648589e93bd171b5b062b9fc42ef7705f
 export default {
   layout: 'entry',
   computed: {
@@ -51,6 +52,16 @@ export default {
       background-color: #606266;
       border-radius: 50%;
       margin: 0 12px;
+    }
+  }
+  .captcha-wrapper {
+    position: relative;
+    .pic-captcha {
+      height: 30px;
+      cursor: pointer;
+      position: absolute;
+      top: 16px;
+      right: 0;
     }
   }
 }

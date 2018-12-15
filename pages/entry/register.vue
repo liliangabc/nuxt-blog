@@ -9,24 +9,10 @@
       <v-text-field prepend-icon="verified_user" label="验证码" :rules="rules.captcha" required v-model="formData.captcha"></v-text-field>
       <img class="pic-captcha" ref="captcha" title="点击刷新" @click="updateCaptcha">
     </v-layout>
-    <v-layout justify-center>
+    <v-layout justify-center mt-3>
       <v-btn color="primary" :loading="loading" @click="handleSubmit">注 册</v-btn>
     </v-layout>
   </v-form>
-  <v-dialog v-model="dialog" persistent max-width="360">
-    <v-card>
-      <v-card-title>
-        <h3 class="blue--text">邮件激活提醒</h3>
-      </v-card-title>
-      <v-card-text>
-        Let Google help apps determine location. This means sending anonymous
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn flat @click="dialog = false">确 定</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
 </div>
 </template>
 <script>
@@ -56,8 +42,7 @@ export default {
           v => !!v || '请输入验证码'
         ]
       },
-      loading: false,
-      dialog: false
+      loading: false
     }
   },
   methods: {
@@ -68,12 +53,11 @@ export default {
       if (!this.$refs.form.validate()) return
       this.loading = true
       this.$axios.post('user/register', this.formData).then(data => {
-
+        this.$router.push('login')
       }).catch(err => {
         this.formData.captcha = ''
         this.updateCaptcha()
         this.loading = false
-        alert(err.message)
       })
     }
   },

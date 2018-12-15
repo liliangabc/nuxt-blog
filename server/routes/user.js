@@ -24,19 +24,19 @@ router.post('/register', (req, res) => {
     validator.validPwd(password) ||
     validator.validCaptcha(captcha, req)
   delete req.session.captcha
-  if (validResult) return res.send(403, validResult)
+  if (validResult) return res.status(403).send(validResult)
 
   // 检查用户名或者邮箱是否已被使用
   email = email.trim()
   userName = userName.trim()
   User.findOne().or([{ userName }, { email }]).exec((err, user) => {
     if (err) {
-      res.send(500, constants.DB_ERROR)
+      res.status(500).send(constants.DB_ERROR)
     } else if (user) {
       if (user.userName === userName) {
-        res.send(403, constants.USER_USED)
+        res.status(403).send(constants.USER_USED)
       } else {
-        res.send(403, constants.EMAIL_USED)
+        res.status(403).send(constants.EMAIL_USED)
       }
 
     // 如果用户名和邮箱可用
@@ -46,12 +46,12 @@ router.post('/register', (req, res) => {
         password = crypto.createHash('md5').update(password).digest('hex')
         new User({ userName, password, email, activateInfo: { code } }).save(err => {
           if (err) {
-            res.send(500, constants.DB_ERROR)
+            res.status(500).send(constants.DB_ERROR)
           } else {
             res.json({ info: constants.REGISTER_SUCCESS })
           }
         })
-      }).catch(() => res.send(500, constants.SMTP_ERROR))
+      }).catch(() => res.status(500).send(constants.SMTP_ERROR))
     }
   })
 })
@@ -63,7 +63,7 @@ router.post('/activate', (req, res) => {
   // 获取并验证数据
   let { code } = req.body
   if (!utils.isStr(code)) {
-    return res.send(403, constants.ACTIVATE_CODE_INVALID)
+    return res.status(403).send(constants.ACTIVATE_CODE_INVALID)
   }
 
   // 检查激活码是否有效
@@ -75,18 +75,18 @@ router.post('/activate', (req, res) => {
 
   // 更新用户激活状态
   User.findOne({ 'activateInfo.code': code }, (err, user) => {
-    if (err) return res.send(500, constants.DB_ERROR)
+    if (err) return res.status(500).send(constants.DB_ERROR)
     if (user && isValid(user)) {
       user.isActivated = true
       user.activateInfo = { date: new Date() }
       user.save(err => {
         if (err) {
-          return res.send(500, constants.DB_ERROR)
+          return res.status(500).send(constants.DB_ERROR)
         }
         res.json({ info: constants.ACTIVATE_SUCCESS })
       })
     } else {
-      res.send(403, constants.ACTIVATE_CODE_INVALID)
+      res.status(403).send(constants.ACTIVATE_CODE_INVALID)
     }
   })
 })
@@ -101,16 +101,17 @@ router.post('/login', (req, res) => {
     validator.validPwd(password) || 
     validator.validCaptcha(captcha, req)
   delete req.session.captcha
-  if (validResult) return res.send(403, validResult)
+  if (validResult) return res.status(403).send(validResult)
 
   // 查找用户是否存在
   let pwd = crypto.createHash('md5').update(password).digest('hex')
-  User.findOne({ email: email.trim() }, { __v: 0, password: 0 }, (err, user) => {
+  User.findOne({ email: email.trim() }, { __v: 0 }, (err, user) => {
     if (err) {
-      res.send(500, constants.DB_ERROR)
+      res.status(500).send(constants.DB_ERROR)
     // 如果用户存在且密码正确，那么检查用户是否已激活
     } else if (user && user.password === pwd) {
-      req.session.user = user
+      let { password: _pwd, data } = JSON.parse(JSON.stringify(user))
+      req.session.user = data
       // 如果已经激活，那么登录成功
       if (user.isActivated) {
         res.json({ info: constants.LOGIN_SUCCESS })
@@ -118,7 +119,7 @@ router.post('/login', (req, res) => {
         res.json({ code: 401, info: constants.NO_ACTIVATE })
       }
     } else {
-      res.send(403, constants.EMAIL_OR_PWD_ERROR)
+      res.status(403).send(constants.EMAIL_OR_PWD_ERROR)
     }
   })
 })
@@ -132,10 +133,10 @@ router.post('/send_activate_mail', (req, res) => {
   let { user } = req.session
   let emailValidResult = validator.validEmail(email)
   if (emailValidResult) {
-    return res.send(403, emailValidResult)
+    return res.status(403).send(emailValidResult)
   }
   if (!user) {
-    return res.send(401, constants.NO_USER_SESSION)
+    return res.status(401).send(constants.NO_USER_SESSION)
   }
 
   // 发送邮件并更新用户激活信息
@@ -145,13 +146,13 @@ router.post('/send_activate_mail', (req, res) => {
       { $set: { 'activateInfo.code': code, 'activateInfo.date': new Date() } },
       err => {
         if (err) {
-          res.send(500, constants.DB_ERROR)
+          res.status(500).send(constants.DB_ERROR)
         } else {
           res.json({ info: constants.ACTIVATE_EMAIL_SEND_SUCCESS })
         }
       }
     )
-  }).catch(() => res.send(500, constants.SMTP_ERROR))
+  }).catch(() => res.status(500).send(constants.SMTP_ERROR))
 })
 
 /**
@@ -162,10 +163,10 @@ router.post('/reset_pwd', (req, res) => {
   let { email, captcha, password } = req.body
   let validResult = validator.validEmail(email) || validator.validPwd(password)
   if (validResult) {
-    return res.send(403, validResult)
+    return res.status(403).send(validResult)
   }
   if (!(utils.isStr(captcha) && captcha.trim())) {
-    return res.send(403, constants.CAPTCHA_ERROR)
+    return res.status(403).send(constants.CAPTCHA_ERROR)
   }
 
   email = email.trim()
@@ -177,23 +178,23 @@ router.post('/reset_pwd', (req, res) => {
   // 检查验证码是否有效
   VerifCode.findOne({ email }, (err, doc) => {
     if (err) {
-      res.send(500, constants.DB_ERROR)
+      res.status(500).send(constants.DB_ERROR)
     } else if (doc) {
       if (isValid(doc)) {
         // 更新用户密码
         password = crypto.createHash('md5').update(password).digest('hex')
         User.updateOne({ email }, { password }, (err, raw) => {
           if (err) {
-            res.send(500, constants.DB_ERROR)
+            res.status(500).send(constants.DB_ERROR)
           } else {
             res.json({ info: constants.PWD_RESET_SUCCESS })
           }
         })
       } else {
-        res.send(403, constants.CAPTCHA_ERROR)
+        res.status(403).send(constants.CAPTCHA_ERROR)
       }
     } else {
-      res.send(403, constants.USER_NOT_FOUND)
+      res.status(403).send(constants.USER_NOT_FOUND)
     }
   })
 })
@@ -206,7 +207,7 @@ router.post('/email_captcha', (req, res) => {
   let { email } = req.body
   let validResult = validator.validEmail(email)
   if (validResult) {
-    return res.send(403, constants.EMAIL_ERROR)
+    return res.status(403).send(constants.EMAIL_ERROR)
   }
 
   email = email.trim()
@@ -214,7 +215,7 @@ router.post('/email_captcha', (req, res) => {
   // 查找用户
   User.findOne({ email }, (err, user) => {
     if (err) {
-      res.send(500, constants.DB_ERROR)
+      res.status(500).send(constants.DB_ERROR)
     } else if (user) {
       // 发送验证码
       let captcha = (1000 + Math.floor(Math.random() * 9000)).toString()
@@ -230,15 +231,15 @@ router.post('/email_captcha', (req, res) => {
           { upsert: true },
           (err, doc) => {
             if (err) {
-              res.send(500, constants.DB_ERROR)
+              res.status(500).send(constants.DB_ERROR)
             } else {
               res.json({ info: constants.EMAIL_CAPTCHA_SEND_SUCCESS })
             }
           }
         )
-      }).catch(() => res.send(500, constants.SMTP_ERROR))
+      }).catch(() => res.status(500).send(constants.SMTP_ERROR))
     } else {
-      res.send(403, constants.USER_NOT_FOUND)
+      res.status(403).send(constants.USER_NOT_FOUND)
     }
   })
 })
@@ -251,7 +252,7 @@ router.post('/logout', (req, res) => {
     delete req.session.user
     res.json({ info: constants.USER_EXIT_SUCCESS })
   } else {
-    res.send(401, constants.NO_USER_SESSION)
+    res.status(401).send(constants.NO_USER_SESSION)
   }
 })
 
@@ -263,7 +264,7 @@ router.get('/info', (req, res) => {
   if (user) {
     res.json({ info: constants.GET_SUCCESS, data: user })
   } else {
-    return res.send(401, constants.NO_USER_SESSION)
+    return res.status(401).send(constants.NO_USER_SESSION)
   }
 })
 

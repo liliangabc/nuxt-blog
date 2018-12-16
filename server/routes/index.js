@@ -7,7 +7,7 @@ const svgCaptcha = require('svg-captcha')
 
 const userRouter = require('./user')
 const qnRouter = require('./qn')
-const postsRouter = require('./posts')
+const articleRouter = require('./article')
 
 const router = express.Router()
 
@@ -23,6 +23,6 @@ router.get('/captcha', (req, res) => {
 module.exports = app => {
   app.use('/api/user', userRouter)
   app.use('/api/qn', qnRouter)
-  app.use('/api/posts', postsRouter)
+  app.use('/api/article', articleRouter)
   app.use('/api', router)
 }

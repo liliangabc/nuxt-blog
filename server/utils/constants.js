@@ -35,5 +35,7 @@ module.exports = {
   PWD_RESET_SUCCESS: '密码重置成功',
   SMTP_ERROR: '邮件服务器连接错误',
   SERVER_ERROR: '服务器内部错误',
-  GET_SUCCESS: '获取成功'
+  GET_SUCCESS: '获取成功',
+  POST_SUCCESS: '提交成功',
+  DEL_SUCCESS: '删除成功'
 }

@@ -16,5 +16,8 @@ module.exports = {
   },
   isEmail(str) {
     return this.isStr(str) && regEmail.test(str)
+  },
+  isEmpty(str) {
+    return !(this.isStr(str) && str.trim())
   }
 }

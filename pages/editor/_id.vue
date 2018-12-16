@@ -11,15 +11,16 @@
         </v-btn>
         <div class="white px-3 py-3">
           <div class="subheading font-weight-bold mb-2 grey--text">添加封面大图</div>
-          <v-img :aspect-ratio="16/9" src="https://cdn.vuetifyjs.com/images/parallax/material.jpg">
-            <!-- <v-btn style="height: 100%;" class="my-0 btn-add-poster" block depressed>
+          <v-img :aspect-ratio="16/9" :src="poster">
+            <v-btn v-if="!poster" style="height: 100%;" class="my-0 btn-add-poster" block depressed @click="handlePosterFileClick">
               点击此处添加图片
-            </v-btn> -->
+            </v-btn>
             <v-layout justify-end>
-              <v-btn title="移除这张图片" class="mx-0 my-0" icon>
+              <v-btn title="移除这张图片" class="mx-0 my-0" icon @click="handleRemovePoster">
                 <v-icon dark>delete_forever</v-icon>
               </v-btn>
             </v-layout>
+            <input style="display: none;" type="file" ref="posterFile" accept="image/*" @change="handlePosterFileChange">
           </v-img>
         </div>
       </v-menu>
@@ -41,12 +42,29 @@ export default {
   data() {
     return {
       md: {},
-      posterMenuVisible: false
+      posterMenuVisible: false,
+      poster: ''
     }
   },
   methods: {
     handleSave(a, b) {
       console.log(a, b)
+    },
+    handlePosterFileClick() {
+      this.$refs.posterFile.click()
+    },
+    handlePosterFileChange(event) {
+      this.$axios.get('/qn/get_token').then(({data}) => {
+        let formData = new FormData()
+        formData.append('token', data.token)
+        formData.append('file', event.target.files[0])
+        this.$axios.post(`//${data.host}`, formData).then(({ key }) => {
+          this.poster = `${data.dlURL}/${key}`
+        })
+      })
+    },
+    handleRemovePoster() {
+      this.poster = ''
     }
   },
   mounted() {

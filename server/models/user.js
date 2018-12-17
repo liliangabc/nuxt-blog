@@ -14,6 +14,7 @@ const userSchema = new Schema({
   },
   email: {
     type: String,
+    unique: true,
     required: true
   },
   isActivated: Boolean,
@@ -29,6 +30,12 @@ const userSchema = new Schema({
     {
       type: Schema.Types.ObjectId,
       ref: 'articles'
+    }
+  ],
+  favorites: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'favorites'
     }
   ]
 })

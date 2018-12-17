@@ -3,7 +3,10 @@
  */
 
 const express = require('express')
+const trimHtml = require('trim-html')
 const Article = require('../models/article')
+const Favorite = require('../models/favorite')
+const { checkAuth } = require('../middleware')
 const utils = require('../utils')
 const constants = require('../utils/constants')
 
@@ -20,14 +23,6 @@ const invalidTitle = str => utils.isEmpty(str) && '文章标题不能为空'
  * @param {String} str 
  */
 const invalidContent = str => utils.isEmpty(str) && '文章内容不能为空'
-
-const checkAuth = (req, res, next) => {
-  if (req.session.user) {
-    next()
-  } else {
-    res.status(401).send(constants.NO_USER_SESSION)
-  }
-}
 
 const validData = (req, res, next) => {
   let { title, content } = req.body
@@ -64,11 +59,13 @@ router.get('/', (req, res) => {
 router.post('/add', checkAuth, validData, (req, res) => {
   let { user } = req.session
   let { title, content, poster } = req.body
+  let summary = trimHtml(content, { wordBreak: true, preserveTags: false }).html
   poster = utils.isStr(poster) ? poster : ''
   Article.create({
-    title, content, poster, user: user._id
+    title, content, summary, poster, user: user._id
   }, (err, doc) => {
     if (err) {
+      console.log(err.message)
       res.status(500).send(constants.DB_ERROR)
     } else {
       res.json({ info: constants.POST_SUCCESS, data: doc })
@@ -106,9 +103,10 @@ router.delete('/del', checkAuth, (req, res) => {
 router.post('/update', checkAuth, validData, (req, res) => {
   let { title, content, poster, id } = req.body
   poster = utils.isStr(poster) ? poster : ''
+  let summary = trimHtml(content, { wordBreak: true, preserveTags: false }).html
   Article.findByIdAndUpdate(
     id,
-    { title, content, poster, 'meta.updateAt': new Date() },
+    { title, content, summary, poster, 'meta.updateAt': new Date() },
     (err, data) => {
       if (err) {
         res.status(500).send(constants.DB_ERROR)
@@ -129,7 +127,7 @@ router.get('/all_list', (req, res) => {
     if (err) {
       return res.status(500).send(constants.DB_ERROR)
     }
-    Article.find().skip(skipCount).limit(pageSize).select('-__v').populate({
+    Article.find().skip(skipCount).limit(pageSize).select('-__v -content').populate({
       path: 'user',
       select: 'userName _id'
     }).exec((err, data) => {
@@ -154,13 +152,38 @@ router.get('/list', checkAuth, (req, res) => {
     if (err) {
       return res.status(500).send(constants.DB_ERROR)
     }
-    Article.find(conditions).skip(skipCount).limit(pageSize).select('-__v').exec((err, data) => {
+    Article.find(conditions).skip(skipCount).limit(pageSize).select('-__v -content').exec((err, data) => {
       if (err) {
         res.status(500).send(constants.DB_ERROR)
       } else {
         res.json({ info: constants.GET_SUCCESS, data, total })
       }
     })
+  })
+})
+
+/**
+ * 收藏和取消收藏
+ */
+router.post('/favorite', checkAuth, (req, res) => {
+  let { user } = req.session
+  let { id } = req.body
+  let conditions = { user: user._id, article: id }
+  Favorite.findOneAndDelete(conditions, (err, doc) => {
+    if (err) {
+      return res.status(500).send(constants.DB_ERROR)
+    }
+    if (doc) {
+      res.json({ info: constants.DEL_SUCCESS })
+    } else {
+      Favorite.create(conditions, (err, doc) => {
+        if (err) {
+          res.status(500).send(constants.DB_ERROR)
+        } else {
+          res.json({ info: constants.ADD_SUCCESS })
+        }
+      })
+    }
   })
 })
 

@@ -1,21 +1,19 @@
 <template>
-  <v-container grid-list-md>
+  <v-container class="page-index" grid-list-md>
     <v-layout row wrap>
-      <v-flex xs6 v-for="item in data" :key="item._id">
-        <v-card height="480">
-          <v-img :src="item.poster" aspect-ratio="2.75"></v-img>
+      <v-flex xs12 sm6 md4 lg3 v-for="item in data" :key="item._id">
+        <v-card class="article-card" :height="cardHeight" hover nuxt :to="`/article/${item._id}`">
+          <v-img :src="item.poster" aspect-ratio="2"></v-img>
           <v-card-title>
-            <div>
-              <h3 class="headline mb-0">{{item.title}}</h3>
-              <div>{{item.content}}</div>
-            </div>
+            <h3 class="title mb-3 artcile-title">{{item.title}}</h3>
+            <div>{{item.summary}}</div>
           </v-card-title>
-          <v-card-actions>
+          <v-card-actions class="actionbar">
             <v-btn icon>
-              <v-icon>star</v-icon>
+              <v-icon dark>favorite</v-icon>
             </v-btn>
             <v-btn icon>
-              <v-icon>favorite</v-icon>
+              <v-icon dark>share</v-icon>
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -29,6 +27,28 @@ export default {
     return $axios.get('/article/all_list').then(data => {
       return { data: data.data, total: data.total }
     }).catch(err => { data: [] })
+  },
+  computed: {
+    cardHeight() {
+      return ({ xs: 'auto', sm: 400 })[this.$vuetify.breakpoint.name] || 390
+    }
   }
 }
 </script>
+<style lang="less">
+.page-index {
+  .article-card {
+    padding-bottom: 52px;
+  }
+  .artcile-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .actionbar {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+}
+</style>

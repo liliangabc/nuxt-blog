@@ -38,5 +38,6 @@ module.exports = {
   GET_SUCCESS: '获取成功',
   POST_SUCCESS: '提交成功',
   DEL_SUCCESS: '删除成功',
-  UPDATE_SUCCESS: '更新成功'
+  UPDATE_SUCCESS: '更新成功',
+  ADD_SUCCESS: '添加成功'
 }

@@ -11,6 +11,7 @@ const articleSchema = new Schema({
     type: String,
     required: true
   },
+  summary: String,
   poster: String,
   meta: {
     createAt: {
@@ -25,7 +26,13 @@ const articleSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId,
     ref: 'users'
-  }
+  },
+  favorites: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'favorites'
+    }
+  ]
 })
 
 module.exports = mongoose.model('articles', articleSchema)

@@ -37,5 +37,6 @@ module.exports = {
   SERVER_ERROR: '服务器内部错误',
   GET_SUCCESS: '获取成功',
   POST_SUCCESS: '提交成功',
-  DEL_SUCCESS: '删除成功'
+  DEL_SUCCESS: '删除成功',
+  UPDATE_SUCCESS: '更新成功'
 }

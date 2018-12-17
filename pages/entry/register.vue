@@ -16,7 +16,7 @@
 </div>
 </template>
 <script>
-import serverUtils from '~/server/utils'
+const serverUtils = require('~/server/utils')
 export default {
   data() {
     return {

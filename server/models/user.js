@@ -32,10 +32,10 @@ const userSchema = new Schema({
       ref: 'articles'
     }
   ],
-  favorites: [
+  collects: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'favorites'
+      ref: 'collects'
     }
   ]
 })

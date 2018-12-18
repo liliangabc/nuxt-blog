@@ -27,10 +27,10 @@ const articleSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'users'
   },
-  favorites: [
+  collects: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'favorites'
+      ref: 'collects'
     }
   ]
 })

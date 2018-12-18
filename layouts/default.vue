@@ -54,7 +54,7 @@ export default {
       drawer: false,
       items: [
         { title: '首页', icon: 'home', to: '/' },
-        { title: '我的收藏', icon: 'favorite', to: '/about' }
+        { title: '我的收藏', icon: 'collections_bookmark', to: '/about' }
       ]
     }
   },

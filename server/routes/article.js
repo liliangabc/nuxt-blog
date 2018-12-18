@@ -5,7 +5,7 @@
 const express = require('express')
 const trimHtml = require('trim-html')
 const Article = require('../models/article')
-const Favorite = require('../models/favorite')
+const Collect = require('../models/collect')
 const { checkAuth } = require('../middleware')
 const utils = require('../utils')
 const constants = require('../utils/constants')
@@ -120,25 +120,23 @@ router.post('/update', checkAuth, validData, (req, res) => {
 /**
  * 获取所有文章列表
  */
-router.get('/all_list', (req, res) => {
+async function getAllList(req, res) {
   let { pageNum = 1, pageSize = 10 } = req.query
   let skipCount = (pageNum - 1) * pageSize
-  Article.estimatedDocumentCount((err, total) => {
-    if (err) {
-      return res.status(500).send(constants.DB_ERROR)
-    }
-    Article.find().skip(skipCount).limit(pageSize).select('-__v -content').populate({
-      path: 'user',
-      select: 'userName _id'
-    }).exec((err, data) => {
-      if (err) {
-        res.status(500).send(constants.DB_ERROR)
-      } else {
-        res.json({ info: constants.GET_SUCCESS, data, total })
-      }
-    })
-  })
-})
+  try {
+    let total = await Article.estimatedDocumentCount()
+    let data = await Article.aggregate().project({
+      favCount: { $size: { $ifNull: ['$collects', []] } },
+      title: 1,
+      summary: 1,
+      poster: 1
+    }).skip(skipCount).limit(pageSize)
+    res.json({ info: constants.GET_SUCCESS, data, total })
+  } catch (err) {
+    return res.status(500).send(constants.DB_ERROR)
+  }
+}
+router.get('/all_list', getAllList)
 
 /**
  * 获取我的文章列表
@@ -165,26 +163,29 @@ router.get('/list', checkAuth, (req, res) => {
 /**
  * 收藏和取消收藏
  */
-router.post('/favorite', checkAuth, (req, res) => {
+async function toggleCollect(req, res) {
   let { user } = req.session
   let { id } = req.body
   let conditions = { user: user._id, article: id }
-  Favorite.findOneAndDelete(conditions, (err, doc) => {
-    if (err) {
-      return res.status(500).send(constants.DB_ERROR)
-    }
+  try {
+    let doc = await Collect.findOneAndDelete(conditions)
     if (doc) {
-      res.json({ info: constants.DEL_SUCCESS })
+      let article = await Article.findById(id)
+      if (article) {
+        article.collects.splice(article.collects.indexOf(id), 1)
+        await article.save()
+        res.json({ info: constants.DEL_SUCCESS })
+      }
     } else {
-      Favorite.create(conditions, (err, doc) => {
-        if (err) {
-          res.status(500).send(constants.DB_ERROR)
-        } else {
-          res.json({ info: constants.ADD_SUCCESS })
-        }
-      })
+      let doc = new Collect(conditions)
+      await doc.save()
+      await Article.findByIdAndUpdate(id, { $push: { collects: doc._id } })
+      res.json({ info: constants.ADD_SUCCESS })
     }
-  })
-})
+  } catch (err) {
+    res.status(500).send(constants.DB_ERROR)
+  }
+}
+router.post('/toggle_collect', checkAuth, toggleCollect)
 
 module.exports = router

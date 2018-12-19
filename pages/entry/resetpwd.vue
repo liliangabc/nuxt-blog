@@ -19,7 +19,7 @@
 </div>
 </template>
 <script>
-const serverUtils = require('~/server/utils')
+import { isEmail } from '~/plugins/tools'
 export default {
   data() {
     return {
@@ -27,7 +27,7 @@ export default {
       rules: {
         email: [
           v => !!v || '请输入你的邮箱',
-          v => serverUtils.isEmail(v) || '请输入正确的邮箱地址'
+          v => isEmail(v) || '请输入正确的邮箱地址'
         ],
         password: [
           v => !!v || '请输入你的密码',

@@ -30,7 +30,7 @@ const articleSchema = new Schema({
   collects: [
     {
       type: Schema.Types.ObjectId,
-      ref: 'collects'
+      ref: 'users'
     }
   ]
 })

@@ -4,8 +4,8 @@
 
 const express = require('express')
 const trimHtml = require('trim-html')
+const { ObjectId } = require('mongoose').Types
 const Article = require('../models/article')
-const Collect = require('../models/collect')
 const { checkAuth } = require('../middleware')
 const utils = require('../utils')
 const constants = require('../utils/constants')
@@ -37,40 +37,29 @@ const validData = (req, res, next) => {
 /**
  * 获取一篇文章
  */
-router.get('/', (req, res) => {
-  let { id } = req.query
-  Article.findById(id).select('-__v').populate({
-    path: 'user',
-    select: 'userName _id'
-  }).exec((err, data) => {
-    if (err) {
-      res.status(500).send(constants.DB_ERROR)
-    } else {
-      res.json({
-        info: constants.GET_SUCCESS, data
-      })
-    }
-  })
+router.get('/', async (req, res) => {
+  try {
+    let data = await Article.findById(req.query.id).select('-__v -collects').populate('user', 'userName _id')
+    res.json({ info: constants.GET_SUCCESS, data })
+  } catch (err) {
+    res.status(500).send(constants.DB_ERROR)
+  }
 })
 
 /**
  * 新增文章
  */
-router.post('/add', checkAuth, validData, (req, res) => {
+router.post('/add', checkAuth, validData, async (req, res) => {
   let { user } = req.session
   let { title, content, poster } = req.body
   let summary = trimHtml(content, { wordBreak: true, preserveTags: false }).html
   poster = utils.isStr(poster) ? poster : ''
-  Article.create({
-    title, content, summary, poster, user: user._id
-  }, (err, doc) => {
-    if (err) {
-      console.log(err.message)
-      res.status(500).send(constants.DB_ERROR)
-    } else {
-      res.json({ info: constants.POST_SUCCESS, data: doc })
-    }
-  })
+  try {
+    await Article.create({ title, content, summary, poster, user: user._id })
+    res.json({ info: constants.POST_SUCCESS })
+  } catch (err) {
+    res.status(500).send(constants.DB_ERROR)
+  }
 })
 
 /**
@@ -120,72 +109,110 @@ router.post('/update', checkAuth, validData, (req, res) => {
 /**
  * 获取所有文章列表
  */
-async function getAllList(req, res) {
+router.get('/all_list', async (req, res) => {
   let { pageNum = 1, pageSize = 10 } = req.query
   let skipCount = (pageNum - 1) * pageSize
+  let userId = req.session.user ? req.session.user._id : null
   try {
     let total = await Article.estimatedDocumentCount()
-    let data = await Article.aggregate().project({
-      favCount: { $size: { $ifNull: ['$collects', []] } },
-      title: 1,
-      summary: 1,
-      poster: 1
-    }).skip(skipCount).limit(pageSize)
+    let data = await Article.aggregate().skip(skipCount).limit(pageSize).lookup({
+      from: 'users',
+      localField: 'user',
+      foreignField: '_id',
+      as: 'u'
+    }).unwind({
+      path: '$u',
+      preserveNullAndEmptyArrays: true
+    }).addFields({
+      user: {
+        userName: '$u.userName',
+        _id: '$u._id'
+      },
+      isFav: { $in: [ObjectId(userId), '$collects'] },
+      favCount: { $size: { $ifNull: ['$collects', []] } }
+    }).project('title summary poster meta user isFav favCount')
     res.json({ info: constants.GET_SUCCESS, data, total })
   } catch (err) {
-    return res.status(500).send(constants.DB_ERROR)
+    res.status(500).send(constants.DB_ERROR)
   }
-}
-router.get('/all_list', getAllList)
+})
 
 /**
  * 获取我的文章列表
  */
-router.get('/list', checkAuth, (req, res) => {
-  let { user } = req.session
+router.get('/list', checkAuth, async (req, res) => {
+  let user = req.session.user._id
   let { pageNum = 1, pageSize = 10 } = req.query
   let skipCount = (pageNum - 1) * pageSize
-  let conditions = { user: user._id }
-  Article.estimatedDocumentCount(conditions, (err, total) => {
-    if (err) {
-      return res.status(500).send(constants.DB_ERROR)
-    }
-    Article.find(conditions).skip(skipCount).limit(pageSize).select('-__v -content').exec((err, data) => {
-      if (err) {
-        res.status(500).send(constants.DB_ERROR)
-      } else {
-        res.json({ info: constants.GET_SUCCESS, data, total })
-      }
+  try {
+    let total = await Article.estimatedDocumentCount({ user })
+    let data = await Article.aggregate().match({
+      user: ObjectId(user)
+    }).skip(skipCount).limit(pageSize).project({
+      isFav: { $in: [ObjectId(user), '$collects'] },
+      favCount: { $size: { $ifNull: ['$collects', []] } },
+      title: 1,
+      summary: 1,
+      poster: 1,
+      meta: 1
     })
-  })
+    res.json({ info: constants.GET_SUCCESS, data, total })
+  } catch (err) {
+    res.status(500).send(constants.DB_ERROR)
+  }
+})
+
+/**
+ * 获取我收藏的文章列表
+ */
+router.get('/collect_list', checkAuth, async (req, res) => {
+  let userId = req.session.user._id
+  let { pageNum = 1, pageSize = 10 } = req.query
+  let skipCount = (pageNum - 1) * pageSize
+  let condition = { collects: { $elemMatch: { $eq: ObjectId(userId) } } }
+  try {
+    let total = await Article.countDocuments(condition)
+    let data = await Article.aggregate().match(condition).skip(skipCount).limit(pageSize).lookup({
+      from: 'users',
+      localField: 'user',
+      foreignField: '_id',
+      as: 'u'
+    }).unwind({
+      path: '$u',
+      preserveNullAndEmptyArrays: true
+    }).addFields({
+      favCount: { $size: { $ifNull: ['$collects', []] } },
+      user: {
+        userName: '$u.userName',
+        _id: '$u._id'
+      }
+    }).project('title summary poster meta user favCount')
+    res.json({ info: constants.GET_SUCCESS, data, total })
+  } catch (err) {
+    res.status(500).send(constants.DB_ERROR)
+  }
 })
 
 /**
  * 收藏和取消收藏
  */
-async function toggleCollect(req, res) {
-  let { user } = req.session
-  let { id } = req.body
-  let conditions = { user: user._id, article: id }
+router.post('/toggle_collect', checkAuth, async (req, res) => {
+  let userId = req.session.user._id
+  let articleId = req.body.id, isAdd = false
   try {
-    let doc = await Collect.findOneAndDelete(conditions)
-    if (doc) {
-      let article = await Article.findById(id)
-      if (article) {
-        article.collects.splice(article.collects.indexOf(id), 1)
-        await article.save()
-        res.json({ info: constants.DEL_SUCCESS })
-      }
+    let article = await Article.findById(articleId)
+    let curIndex = article.collects.indexOf(userId)
+    if (curIndex !== -1) {
+      article.collects.splice(curIndex, 1)
     } else {
-      let doc = new Collect(conditions)
-      await doc.save()
-      await Article.findByIdAndUpdate(id, { $push: { collects: doc._id } })
-      res.json({ info: constants.ADD_SUCCESS })
+      isAdd = true
+      article.collects.push(userId)
     }
+    await article.save()
+    res.json({ info: isAdd ? constants.ADD_SUCCESS : constants.DEL_SUCCESS })
   } catch (err) {
     res.status(500).send(constants.DB_ERROR)
   }
-}
-router.post('/toggle_collect', checkAuth, toggleCollect)
+})
 
 module.exports = router

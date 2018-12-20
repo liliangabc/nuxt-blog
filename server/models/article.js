@@ -32,7 +32,8 @@ const articleSchema = new Schema({
       type: Schema.Types.ObjectId,
       ref: 'users'
     }
-  ]
+  ],
+  viewCount: Number
 })
 
 module.exports = mongoose.model('articles', articleSchema)

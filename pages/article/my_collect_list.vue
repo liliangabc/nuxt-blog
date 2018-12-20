@@ -4,7 +4,7 @@
 <script>
 export default {
   asyncData({ $axios }) {
-    return $axios.get('/article/all_list').then(data => {
+    return $axios.get('/article/collect_list').then(data => {
       return { list: data.data, total: data.total }
     }).catch(err => {
       return { list: [] }

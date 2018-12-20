@@ -1,14 +1,14 @@
 <template>
 <v-app>
-  <v-navigation-drawer :clipped="$vuetify.breakpoint.lgAndUp" v-model="drawer" fixed app>
+  <v-navigation-drawer width="256" :clipped="$vuetify.breakpoint.lgAndUp" v-model="drawer" fixed app>
     <v-toolbar flat color="transparent">
-      <v-list class="pa-0">
+      <v-list class="pa-0" v-if="isLogined">
         <v-list-tile avatar>
           <v-list-tile-avatar>
-            <v-icon>account_circle</v-icon>
+            <v-icon large>account_circle</v-icon>
           </v-list-tile-avatar>
           <v-list-tile-content>
-            <v-list-tile-title>John Leider</v-list-tile-title>
+            <v-list-tile-title>{{user.userName}}</v-list-tile-title>
           </v-list-tile-content>
         </v-list-tile>
       </v-list>
@@ -54,7 +54,8 @@ export default {
       drawer: false,
       items: [
         { title: '首页', icon: 'home', to: '/' },
-        { title: '我的收藏', icon: 'collections_bookmark', to: '/about' }
+        { title: '我的文章', icon: 'library_books', to: '/article/my_list' },
+        { title: '我的收藏', icon: 'collections_bookmark', to: '/article/my_collect_list' },
       ]
     }
   },

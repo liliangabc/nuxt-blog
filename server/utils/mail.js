@@ -48,7 +48,7 @@ module.exports = {
           <div>
             <p>亲爱的<a href="mailto:${data.email}">${data.email}</a>：</p>
             <p>我们已经收到您的帐号激活申请，请点击以下链接激活您的帐号：</p>
-            <a href="{{url}}">${data.url}</a>
+            <a href="${data.url}">${data.url}</a>
             <p>如果该链接无法点击，请直接拷贝以上链接到浏览器(例如chrome)地址栏中访问</p>
             <p class="footer">此信是由 <a href="${data.site}">SOC-SOC</a> 系统发出，系统不接收回信，请勿直接回复。</p>
           </div>
@@ -65,7 +65,7 @@ module.exports = {
   sendActivateMail(req, email) {
     let site = `${req.protocol}://${req.headers.host}`
     let code = crypto.createHash('sha256').update(Math.random().toString()).digest('hex')
-    let url = `${site}/api/user/activate?code=${code}`
+    let url = `${site}/entry/activate?code=${code}`
     let html = this.getActivateHtml({ site, email, url })
     return this.sendMail(email, constants.USER_ACTIVATE_SUBJECT, html).then(() => code)
   }

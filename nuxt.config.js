@@ -28,7 +28,7 @@ module.exports = {
   ** Global CSS
   */
   css: [
-    
+    '@/assets/less/base.less'
   ],
 
   /*

@@ -45,11 +45,10 @@ router.get('/', (req, res, next) => {
     .select('content meta poster title user collects viewCount')
     .populate('user', 'userName _id')
     .then(data => {
-      if (data) {
-        data._doc.favCount = data._doc.collects.length
-        data._doc.isFav = data._doc.collects.indexOf(userId) !== -1
-        delete data._doc.collects
-      }
+      if (!data) return res.sendStatus(404)
+      data._doc.favCount = data._doc.collects.length
+      data._doc.isFav = data._doc.collects.indexOf(userId) !== -1
+      delete data._doc.collects
       res.json({ info: constants.GET_SUCCESS, data: data || {} })
     })
     .catch(next)
@@ -101,8 +100,8 @@ router.post('/update', checkAuth, validData, (req, res) => {
   let { title, content, poster, id } = req.body
   poster = utils.isStr(poster) ? poster : ''
   let summary = trimHtml(content, { wordBreak: true, preserveTags: false }).html
-  Article.findByIdAndUpdate(
-    id,
+  Article.findOneAndUpdate(
+    { _id: id },
     { title, content, summary, poster, 'meta.updateAt': new Date() },
     (err, data) => {
       if (err) {

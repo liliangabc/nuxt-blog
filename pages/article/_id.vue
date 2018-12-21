@@ -1,44 +1,38 @@
 <template>
-<div class="py-4 px-3 page-article">
-  <v-card>
-    <v-card-title class="article-title" primary-title>
-      <div>
-        <h3 class="headline mb-2">{{data.title}}</h3>
-        <div class="article-info grey--text text--darken-2">
-          <span class="caption mr-3">作者：{{data.user.userName}}</span>
-          <span class="caption mr-3">创建时间：{{data.meta.createAt | toLocalDate}}</span>
-          <span class="caption">最后更新于：{{data.meta.updateAt | toLocalDate}}</span>
-        </div>
-      </div>
-    </v-card-title>
-    <v-img :src="data.poster" aspect-ratio="2.75"></v-img>
-    <v-card-text v-html="data.content"></v-card-text>
-  </v-card>
-</div>
+<v-layout class="px-3 py-4 page-article">
+  <h1 v-if="errmsg">{{errmsg}}</h1>
+  <template v-else>
+    <div class="content-wrapper">
+      <com-article-details v-if="data" :article="data"></com-article-details>
+    </div>
+    <aside class="right-sidebar">
+
+    </aside>
+  </template>
+</v-layout>
 </template>
 <script>
+import ComArticleDetails from '~/components/ArticleDetails'
 export default {
-  asyncData({ $axios, route }) {
+  components: { ComArticleDetails },
+  asyncData({ $axios, route, redirect }) {
     return $axios.get('/article', {
       params: { id: route.params.id  }
-    }).then(({ data }) => {
-      return { data }
-    }).catch(err => ({ data: {} }))
-  },
-  filters: {
-    toLocalDate(dateStr) {
-      return new Date(dateStr).toLocaleString()
-    }
+    }).then(data => data).catch(err => ({ errmsg: err.message }))
   }
 }
 </script>
 <style lang="less">
 .page-article {
-  max-width: 800px;
+  max-width: 960px;
   margin: auto;
-  .article-title {
-    justify-content: center;
-    text-align: center;
+  .content-wrapper {
+    background-color: #fff;
+    flex: 1;
+  }
+  .right-sidebar {
+    width: 240px;
+    min-width: 240px;
   }
 }
 </style>

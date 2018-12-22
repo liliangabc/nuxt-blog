@@ -44,7 +44,7 @@ export default {
       })
     },
     favColor(item) {
-      return item.isFav ? 'red' : 'grey darken-2'
+      return item.isFav ? 'pink' : 'grey darken-2'
     }
   }
 }

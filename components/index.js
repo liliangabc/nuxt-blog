@@ -1,7 +1,8 @@
-import ArticleList from './ArticleList'
+const _require = name => require(`./${name}`).default
 
 const coms = [
-  ArticleList
+  _require('ArticleList'),
+  _require('AuthorInfoBox')
 ]
 
 export default {

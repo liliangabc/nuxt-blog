@@ -1,24 +1,22 @@
 <template>
 <v-layout class="px-3 py-4 page-article">
-  <h1 v-if="errmsg">{{errmsg}}</h1>
-  <template v-else>
-    <div class="content-wrapper">
-      <com-article-details v-if="data" :article="data"></com-article-details>
-    </div>
-    <aside class="right-sidebar">
-
-    </aside>
-  </template>
+  <div class="content-wrapper">
+    <com-article-details :article="data"></com-article-details>
+  </div>
+  <aside class="ml-4 right-sidebar">
+    <com-ad-box></com-ad-box>
+  </aside>
 </v-layout>
 </template>
 <script>
+import ComAdBox from '~/components/AdBox'
 import ComArticleDetails from '~/components/ArticleDetails'
 export default {
-  components: { ComArticleDetails },
-  asyncData({ $axios, route, redirect }) {
-    return $axios.get('/article', {
-      params: { id: route.params.id  }
-    }).then(data => data).catch(err => ({ errmsg: err.message }))
+  components: { ComArticleDetails, ComAdBox },
+  asyncData({ $axios, route, error }) {
+    return $axios.get(`/article?id=${route.params.id}`).then(data => {
+      return data.code ? error({ statusCode: 404, message: data.info }) : data
+    }).catch(error)
   }
 }
 </script>

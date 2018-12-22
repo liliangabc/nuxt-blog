@@ -34,22 +34,24 @@ const validData = (req, res, next) => {
   }
 }
 
+const res404 = res => res.json({ info: constants.SOURCE_NOT_FOUND, code: 404 })
+
 /**
  * 获取一篇文章
  */
 router.get('/', (req, res, next) => {
   let { id } = req.query
   let userId = req.session.user ? req.session.user._id : null
-  if (!ObjectId.isValid(id)) return res.sendStatus(404)
+  if (!ObjectId.isValid(id)) return res404(res)
   Article.findOneAndUpdate({ _id: id }, { $inc: { viewCount: 1 } })
     .select('content meta poster title user collects viewCount')
     .populate('user', 'userName _id')
     .then(data => {
-      if (!data) return res.sendStatus(404)
+      if (!data) return res404(res)
       data._doc.favCount = data._doc.collects.length
       data._doc.isFav = data._doc.collects.indexOf(userId) !== -1
       delete data._doc.collects
-      res.json({ info: constants.GET_SUCCESS, data: data || {} })
+      res.json({ info: constants.GET_SUCCESS, data })
     })
     .catch(next)
 })
